@@ -1,0 +1,79 @@
+#include <stdio.h> // biblioteca generica de c
+#include <stdlib.h> // biblioteca necessaria para alocações de memoria 
+
+typedef struct { // criamos um tipo chamado caixa, que vai ter duas variaveis na sua constituição
+    int l; //largura 
+    int a; // altura 
+}caixa;
+
+// função que vai verificar ate onde se pode verificar caixas para a direito, mantendo uma altura maior ou igual
+int verificar_caixas_direita(caixa caixas[], int posicao, int total){           // total existe para que nao passe do numero limite de entradas
+    int limite = posicao;                                                       // limite começa na posição atual da caixa em questão 
+    while (limite < total-1 && caixas[limite +1].a >= caixas[posicao].a){       // total -1 pois começa em 0 e nao em 1.
+        limite++;                                                               // enquanto o limite nao chegar ao ultimo valor do array, vai andando sempre para a direita.
+    }
+    return limite;                                                              //o valor retornado é o índice da última caixa que, ao ser comparada com a caixa de referência, tem uma altura maior ou igual    
+}
+
+// função que vai verificar ate onde se pode verificar caixas para a esquerda, mantendo uma altura maior ou igual
+int verificar_caixas_esquerda(caixa caixas[], int posicao){                     // caixas é um array do tipo caixa, que vai ter uma largura e altura. posicao é a posição da caixa dentro do array
+    int limite = posicao;                                                       // limite começa na posição atual da caixa em questão 
+    while (limite > 0 && caixas[limite -1].a >= caixas[posicao].a){             // a caixa que esta a esquerda tem que ser >= a caixa atual. limite > 0 pois tem que haver caixas para o aldo esquerdo
+        limite--;                                                               // enquanto o loop for verdade, vai andar para tras dentro do array em relação a posição inicial do limite.
+    }
+    return limite;                                                              //o valor retornado é o índice da última caixa que, ao ser comparada com a caixa de referência, tem uma altura maior ou igual
+}
+
+//função que vai ser utilizada para calcular a maior area possivel
+int calculo_area_total( caixa caixas[], int total){
+    int maior_area = 0;                                                         // tamos a criar a variavel que vai ser a maior area, que vai começar como 0
+    for (int i = 0; i < total; i++){                                            // este for, vai percorrer as caixas todas do array, começando na 0 e terminanado na total -1
+        int lado_direito = verificar_caixas_direita(caixas, i, total);          // o nosso i, significa o indice das caixas, que vai ser a posição da caixa, por isso que chamamos no lugar da variavel posicao
+        int lado_esquerdo = verificar_caixas_esquerda (caixas, i);              // tamos a chamar ambas as funções e a colocar o valor das funções nas novas variaveis
+        
+        // for para calcular a largura total
+        int soma_largura = 0;                                                   // inicio do valor da soma total das arguras
+        for (int ind_largura = lado_esquerdo; ind_largura <= lado_direito; ind_largura++){  // vai definir que a largura que queremos sao as das caixas dentro deste limite
+            soma_largura += caixas[ind_largura].l;                                  // soma da largura da caixa atual com a proxima
+        }
+        
+        int area = soma_largura * caixas[i].a;                                 // vamos fazer a soma das larguras com a altura da ciaxa atual
+        if (area > maior_area){                                                // se a area for > que o valor atual da maior area, maior area fica com ovalor de area 
+            maior_area = area;
+        }
+    }
+    return maior_area;                                                         // quando o lopp chegar ao fim, a função vai retornar o valor da maior area
+}
+
+int main (){
+    int limite = 10;
+    caixa *caixas = malloc(limite * sizeof(caixa));
+
+    
+    // no caso de falhar na alocação de memoria 
+    if (caixas == NULL){
+        perror ("erro na alocação de memoria");
+        return 1;
+    }
+    int indice = 0;
+
+    while (scanf("%d %d", &caixas[indice].l, &caixas[indice].a) == 2){
+        if (caixas[indice].l >= 1 && caixas[indice].a >= 1 && caixas[indice].a <= 10000){
+            if (indice >= limite){ 
+                limite *= 2;
+                caixa *temp = realloc(caixas, limite * sizeof(caixa));
+                if (temp == NULL){ 
+                    perror("erro na alocação de memoria");
+                    free(caixas); 
+                    return 1;
+                }
+                caixas = temp; 
+            }
+            indice++;
+        } 
+        else{break;}
+    }
+    printf("%d\n", calculo_area_total(caixas, indice));
+    free(caixas);
+    return 0;
+}
